@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Subtitle Vocab Catcher",
+  "version": "1.1.0",
+  "description": "Захват фраз из субтитров, перевод через DeepL и сохранение слов в Anki через AnkiConnect.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://villybizy.skin/*",
+    "https://api-free.deepl.com/*",
+    "https://api.deepl.com/*",
+    "http://localhost:8765/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "all_frames": true,
+      "js": ["content.js"],
+      "css": ["popup.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "options.html",
+    "default_title": "Subtitle Vocab Catcher — настройки"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
