@@ -203,7 +203,7 @@ function onWordClick(rawWord, fullPhrase, spanEl) {
   detailEl.style.display = "block";
   detailEl.innerHTML = `<div class="svc-loading">Перевожу «${cleanWord}»...</div>`;
 
-  requestWordTranslation(cleanWord).then((wordTranslation) => {
+  requestWordTranslation(cleanWord, fullPhrase).then((wordTranslation) => {
     const phraseTranslation =
       popupEl.querySelector(".svc-phrase-translation")?.textContent || "";
 
@@ -245,9 +245,9 @@ function requestPhraseTranslation(text) {
     .then((res) => (res && res.ok ? res.translation : "Ошибка перевода"));
 }
 
-function requestWordTranslation(word) {
+function requestWordTranslation(word, context) {
   return chrome.runtime
-    .sendMessage({ type: "translate", text: word })
+    .sendMessage({ type: "translate", text: word, context })
     .then((res) => (res && res.ok ? res.translation : "Ошибка перевода"));
 }
 

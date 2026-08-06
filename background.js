@@ -12,11 +12,16 @@ async function getSettings() {
   return { ...DEFAULTS, ...stored };
 }
 
-async function translateText(text) {
+async function translateText(text, context) {
   const settings = await getSettings();
   if (!settings.deeplApiKey) {
     return { ok: false, error: "DeepL API ключ не задан. Открой настройки расширения." };
   }
+
+  const params = { text, target_lang: settings.targetLang };
+  // context не переводится сам, но влияет на перевод text — так слово
+  // переводится с учётом окружающей фразы, а не изолированно.
+  if (context) params.context = context;
 
   try {
     const resp = await fetch(`${settings.deeplHost}/v2/translate`, {
@@ -25,10 +30,7 @@ async function translateText(text) {
         Authorization: `DeepL-Auth-Key ${settings.deeplApiKey}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: new URLSearchParams({
-        text,
-        target_lang: settings.targetLang,
-      }),
+      body: new URLSearchParams(params),
     });
 
     if (!resp.ok) {
@@ -134,7 +136,7 @@ async function addToAnki(payload) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "translate") {
-    translateText(message.text).then(sendResponse);
+    translateText(message.text, message.context).then(sendResponse);
     return true; // keep channel open for async response
   }
   if (message.type === "addToAnki") {
