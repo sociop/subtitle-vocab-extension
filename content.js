@@ -1,6 +1,18 @@
 // ==== Конфигурация ====
 const CONFIG = {
-  captionSelector: ".allplay_caption, .allplay__caption, #pjs_player_subtitle",
+  // Alloha — .allplay_caption; PlayerJS строит id как pjs_<id контейнера>_subtitle
+  // (pjs_player_subtitle, pjs_cdnplayer_subtitle и т.п.); JW Player держит строки
+  // реплики отдельными .jw-text-track-cue внутри .jw-text-track-display, поэтому
+  // берём контейнер целиком; Amazon Prime (ATV Web Player SDK) — каждая строка
+  // отдельным .atvwebplayersdk-captions-text, обёртка вокруг них с хешированными
+  // классами, зацепиться не за что.
+  captionSelector: [
+    ".allplay_caption",
+    ".allplay__caption",
+    '[id^="pjs_"][id$="_subtitle"]',
+    ".jw-text-track-display",
+    ".atvwebplayersdk-captions-text",
+  ].join(", "),
   hotkey: { ctrlKey: true, shiftKey: true, code: "KeyX" },
   pollIntervalMs: 250,
 };
@@ -18,13 +30,20 @@ function extractCaptionText(el) {
   return raw.replace(/\s*\n+\s*/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// Плееры вроде Prime рендерят каждую строку реплики отдельным элементом,
+// поэтому собираем все совпадения, а не первое. innerText у скрытых
+// элементов пустой — отработавшие реплики отсеются сами.
+function readCaption() {
+  return [...document.querySelectorAll(CONFIG.captionSelector)]
+    .map(extractCaptionText)
+    .filter(Boolean)
+    .join(" ");
+}
+
 function watchCaptions() {
   setInterval(() => {
-    const el = document.querySelector(CONFIG.captionSelector);
-    if (el) {
-      const text = extractCaptionText(el);
-      if (text) lastCaptionText = text;
-    }
+    const text = readCaption();
+    if (text) lastCaptionText = text;
   }, CONFIG.pollIntervalMs);
 
   console.log("[Subtitle Vocab Catcher] Наблюдение за субтитрами запущено.");
